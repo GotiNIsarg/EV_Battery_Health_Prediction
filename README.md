@@ -1,469 +1,282 @@
-# Electric Vehicle (EV) Battery Degradation & Charge
+# EV Battery Health Prediction
 
-## State of Health (SoH) Estimation for NMC & LFP Batteries
+## Project description
 
-[![Dataset on Kaggle](https://img.shields.io/badge/Kaggle-Download%20Dataset-20BEFF?logo=kaggle&logoColor=white)](https://www.kaggle.com/datasets/bertnardomariouskono/electric-vehicle-ev-battery-degradation-and-charge/data)
+This beginner project uses Python and supervised machine learning to estimate an electric-vehicle battery's State of Health (SoH) as a percentage. It follows the data-inspection, EDA, cleaning, train/test, regression, evaluation, and model-saving workflow taught in BCA Sem-III course 303-05.
 
-## 1. Project Overview
+> **Important dataset warning:** The Kaggle author describes these 10,000 records as **synthetic simulations**, not measurements collected from real EV batteries. This is suitable for learning the workflow, but its scores do not prove that a model can diagnose a real battery. Validate any future model with independent measured battery-test data.
 
-Estimating the State of Health (SoH) and Remaining Useful Life (RUL) of electric-vehicle batteries is important for battery monitoring, maintenance planning, and battery-management systems.
+> **Course requirement:** The teacher's project instructions require a real-world dataset and faculty approval. This supplied synthetic dataset does **not** meet that requirement unless your faculty approves it as a learning demonstration. Ask for approval or replace it with an approved measured dataset before submitting.
 
-This project uses a **synthetic dataset of 10,000 records** to explore battery-health prediction and related machine-learning tasks. The dataset describes two battery chemistries: Lithium Iron Phosphate (LFP) and Nickel Manganese Cobalt (NMC).
+## Dataset and units
 
-> **Important:** The dataset is synthetic. Results from models trained on it should not be treated as validated real-world battery diagnostics without testing against independent real-world measurements.
+Source: [Electric Vehicle (EV) Battery Degradation & Charge on Kaggle](https://www.kaggle.com/datasets/bertnardomariouskono/electric-vehicle-ev-battery-degradation-and-charge). The supplied copy is `Dataset/EV_Battery_Dataset.csv`. Kaggle describes 10,000 simulated records for LFP and NMC batteries and lists an Apache 2.0 license.
 
-## 2. Dataset Download
+The unit descriptions below follow the Kaggle dataset description and column names. A dash means the column is a label or identifier, not a physical measurement.
 
-**Download the dataset:**  
-[Electric Vehicle (EV) Battery Degradation & Charge — Kaggle](https://www.kaggle.com/datasets/bertnardomariouskono/electric-vehicle-ev-battery-degradation-and-charge/data)
+| Column | Meaning | Unit or kind | Project use |
+|---|---|---|---|
+| `Vehicle_ID` | Vehicle record identifier | ID; no physical unit | Excluded from model |
+| `Car_Model` | Vehicle model name | Category | Reported in data inspection |
+| `Battery_Type` | LFP or NMC chemistry | Category | Used for EDA bar chart |
+| `Battery_Capacity_kWh` | Listed battery capacity | kilowatt-hours (kWh) | Excluded as a possible target-linked value |
+| `Vehicle_Age_Months` | Vehicle age | months | Model input |
+| `Total_Charging_Cycles` | Cumulative charge/discharge cycles | cycles | Model input and simple-regression input |
+| `Avg_Temperature_C` | Average operating temperature | degrees Celsius (°C) | Model input |
+| `Fast_Charge_Ratio` | Share of charging sessions using fast charging | ratio from 0 to 1; unitless | Model input |
+| `Avg_Discharge_Rate_C` | Average battery discharge rate | C-rate | Model input |
+| `Driving_Style` | Driving-style label | Category | Reported in data inspection |
+| `Internal_Resistance_Ohm` | Battery internal resistance | ohms (Ω) | Excluded because Kaggle says it increases as SoH drops |
+| `SoH_Percent` | State of Health; regression target | percent (%) | Target |
+| `Battery_Status` | Healthy or Replace Required | Category | EDA only; not a model input |
 
-Dataset details reported on the Kaggle page:
+## Folder structure
 
-- **File:** `ev_battery_degradation_v1.csv`
-- **Samples:** 10,000
-- **Columns:** 13
-- **Format:** CSV
-- **Battery types:** LFP and NMC
-- **License:** Apache 2.0 (as listed on the dataset page)
-
-### Download steps
-
-1. Open the [Kaggle dataset page](https://www.kaggle.com/datasets/bertnardomariouskono/electric-vehicle-ev-battery-degradation-and-charge/data).
-2. Sign in to Kaggle if prompted.
-3. Select **Download**.
-4. Extract the downloaded ZIP file if necessary.
-5. Put `ev_battery_degradation_v1.csv` in your project folder.
-
-## 3. Battery Chemistry
-
-### LFP — Lithium Iron Phosphate
-
-- Commonly valued for durability and thermal stability.
-- Used in a range of electric vehicles and energy-storage applications.
-- The dataset description mentions BYD and Wuling as examples.
-
-### NMC — Nickel Manganese Cobalt
-
-- Commonly used where high energy density is important.
-- Its degradation depends on operating conditions, cell design, and battery-management practices.
-- The dataset description mentions Tesla and Hyundai as examples.
-
-The dataset can be used to compare the simulated patterns for LFP and NMC. These patterns should not automatically be assumed to represent every real vehicle or battery pack.
-
-## 4. Dataset Features
-
-The dataset page describes the following 13 columns:
-
-| Column | Description |
-|---|---|
-| `Vehicle_ID` | Unique vehicle identifier. |
-| `Car_Model` | Electric-vehicle model. |
-| `Battery_Type` | Battery chemistry, LFP or NMC. |
-| `Battery_Capacity_kWh` | Nominal battery capacity in kilowatt-hours. |
-| `Vehicle_Age_Months` | Vehicle age in months. |
-| `Total_Charging_Cycles` | Cumulative equivalent full charge-discharge cycles. |
-| `Avg_Temperature_C` | Average operating temperature in degrees Celsius. |
-| `Fast_Charge_Ratio` | Proportion of charging sessions using DC fast charging, from 0 to 1. |
-| `Avg_Discharge_Rate_C` | Average discharge rate, expressed as a C-rate. |
-| `Driving_Style` | Driving-style category, such as Conservative, Moderate, or Aggressive. |
-| `Internal_Resistance_Ohm` | Battery internal resistance in ohms. |
-| `SoH_Percent` | State of Health, expressed as a percentage; regression target. |
-| `Battery_Status` | Battery status category, described as Healthy or Replace Required; classification target. |
-
-## 5. Dataset Methodology
-
-According to the dataset description, the records were generated using a semi-empirical degradation simulation that considers:
-
-### Cycle aging
-Degradation is modeled in relation to cumulative charge-discharge cycles.
-
-### Temperature impact
-The simulation uses the Arrhenius equation to represent faster aging at higher temperatures.
-
-### Charging-rate impact
-The simulation models the effects of DC fast charging versus AC slow charging on battery stress and internal resistance.
-
-### Chemistry-specific effects
-Different degradation coefficients are used for LFP and NMC battery chemistries.
-
-These are descriptions of the dataset's simulation approach, not proof that every relationship in the synthetic data exactly matches real-world battery behavior.
-
-## 6. Project Objectives
-
-1. Explore the distribution of battery State of Health.
-2. Investigate relationships between battery health, age, charging cycles, temperature, and charging behavior.
-3. Compare simulated health patterns for LFP and NMC batteries.
-4. Train regression models to estimate `SoH_Percent`.
-5. Optionally train a classification model to predict `Battery_Status`.
-6. Evaluate model performance using appropriate metrics.
-7. Discuss limitations and the need for real-world validation.
-
-## 7. Machine-Learning Tasks
-
-### 7.1 Regression
-
-**Goal:** Predict the continuous numerical target `SoH_Percent`.
-
-Possible models:
-
-- Linear Regression
-- Random Forest Regressor
-- Gradient Boosting Regressor
-- Support Vector Regression (SVR)
-
-Useful evaluation metrics:
-
-- **MAE:** Mean Absolute Error
-- **MSE:** Mean Squared Error
-- **RMSE:** Root Mean Squared Error
-- **R²:** Coefficient of determination
-
-### 7.2 Classification
-
-**Goal:** Predict the categorical target `Battery_Status`.
-
-Possible models:
-
-- Logistic Regression
-- Decision Tree Classifier
-- Random Forest Classifier
-- Support Vector Machine (SVM)
-- Gradient Boosting Classifier
-
-Useful evaluation metrics:
-
-- Accuracy
-- Precision
-- Recall
-- F1-score
-- Confusion matrix
-- ROC-AUC, when appropriate
-
-Before classification, inspect the class labels and their balance. Do not assume the labels are balanced.
-
-## 8. Setup and Required Libraries
-
-Use a recent Python 3 environment. Install the packages with:
-
-```bash
-python -m pip install --upgrade pandas numpy matplotlib seaborn scikit-learn
+```text
+EV_Battery_Health_Prediction/
+├── Dataset/
+│   └── EV_Battery_Dataset.csv
+├── Python_Code/
+│   ├── project.py
+│   └── best_model.pkl
+├── Reports/
+│   ├── EDA_Report.html
+│   ├── Project_Report.pdf
+│   ├── soh_histogram.png
+│   ├── soh_boxplot.png
+│   ├── cycles_vs_soh.png
+│   ├── correlation_heatmap.png
+│   ├── battery_status_pie.png
+│   ├── battery_type_bar.png
+│   └── simple_regression_line.png
+├── Fundamentals of Machine Learning/
+│   └── README.md
+├── main.py
+├── requirements.txt
+├── LEARNING_GUIDE.md
+├── VIVA_QUESTIONS.md
+└── .gitignore
 ```
 
-The examples below use common scikit-learn APIs. If your installed version differs, consult the [official scikit-learn documentation](https://scikit-learn.org/stable/).
+The local `Fundamentals of Machine Learning` folder contains the course PDFs. The PDFs are not copied to this public project; the folder's README and `LEARNING_GUIDE.md` summarize the topics without redistributing the handouts. Share the original course files only if you have permission.
 
-## 9. Load and Inspect the Dataset
+## Install and run
+
+Tested with Python 3.12.10 and the package versions listed in `requirements.txt`.
+
+1. Clone or download this repository.
+2. Open a terminal in the project root.
+3. Create and activate a virtual environment:
+
+   ```powershell
+   py -3.12 -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   ```
+
+4. Install the required libraries:
+
+   ```powershell
+   python -m pip install -r requirements.txt
+   ```
+
+5. Run the project from the repository root:
+
+   ```powershell
+   python Python_Code\project.py
+   ```
+
+   Or use the root launcher:
+
+   ```powershell
+   python main.py
+   ```
+
+The program prints the inspection and model results from the supplied CSV, saves seven chart images and `Project_Report.pdf` in `Reports/`, and saves the selected estimator in `Python_Code/best_model.pkl`. Running it again replaces those generated outputs.
+
+## How to build this project yourself
+
+Follow these steps in order. Times are estimates for a first-time student; your time may differ.
+
+| Step | What you do | Estimated time |
+|---|---|---:|
+| 1 | Read the project instructions and confirm that the dataset matches the question | 20 minutes |
+| 2 | Load the CSV and inspect its rows, columns, types, and units | 25 minutes |
+| 3 | Check missing values, duplicates, and IQR outliers; write down cleaning decisions | 30 minutes |
+| 4 | Make and label the six EDA charts | 35 minutes |
+| 5 | Fit the simple line, explain its slope, R², and RSS | 25 minutes |
+| 6 | Select features and the target, then split the data 80/20 | 20 minutes |
+| 7 | Train Linear, Ridge (L2), and Lasso (L1) models with five-fold cross-validation | 45 minutes |
+| 8 | Compare test-set MAE, MSE, RMSE, and R² | 25 minutes |
+| 9 | Save the selected estimator and predict one held-out sample | 20 minutes |
+| 10 | Generate the optional HTML report, write the report, and check the repository | 60 minutes |
+| **Total** | **Estimated project time** | **About 5 hours** |
+
+The script uses five numerical input measurements: vehicle age (months), charging cycles (cycles), temperature (°C), fast-charge ratio (0–1), and discharge rate (C-rate). It deliberately leaves out `Vehicle_ID` (an identifier), `Battery_Status` (a second target), `Internal_Resistance_Ohm` (strongly tied to SoH in the Kaggle description), and `Battery_Capacity_kWh` (a possible capacity/target leakage risk). It also leaves out text categories to keep the first model small and understandable.
+
+### Optional automated EDA HTML report
+
+This is a separate extra package; it is not imported by the main model code and is not included in the core `requirements.txt`. Use a separate environment so this optional package does not change the tested core dependencies. From the project root:
+
+```powershell
+py -3.12 -m venv .venv-eda
+.\.venv-eda\Scripts\Activate.ps1
+python -m pip install ydata-profiling==4.17.0
+```
+
+Then run this separate snippet from the project root:
 
 ```python
+import warnings
+from pyparsing.warnings import PyparsingDeprecationWarning
+
+# Ignore only known deprecations in this optional package's dependencies.
+warnings.filterwarnings(
+    "ignore",
+    message="'imghdr' is deprecated and slated for removal in Python 3.13",
+    category=DeprecationWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message="'oneOf' deprecated - use 'one_of'",
+    category=PyparsingDeprecationWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message=r"datetime.datetime.utcnow\(\) is deprecated.*",
+    category=DeprecationWarning,
+)
+
 import pandas as pd
+from ydata_profiling import ProfileReport
 
-# Load the CSV file from your project folder
-df = pd.read_csv("ev_battery_degradation_v1.csv")
-
-# Preview the first five rows
-print(df.head())
-
-# Check rows and columns
-print("Dataset shape:", df.shape)
-
-# Check column names, data types, and non-null counts
-df.info()
-
-# Summary statistics for numerical columns
-print(df.describe())
-
-# Display all column names
-print(df.columns.tolist())
+df = pd.read_csv("Dataset/EV_Battery_Dataset.csv")
+profile = ProfileReport(df, title="EV Battery Dataset Profile", explorative=True)
+profile.to_file("Reports/EDA_Report.html")
 ```
 
-## 10. Check Data Quality
+Open `Reports/EDA_Report.html` in a web browser. Automated EDA is a helpful extra, not a replacement for checking the columns, units, leakage risks, and generated results yourself.
 
-```python
-# Count missing values in each column
-print("Missing values:")
-print(df.isnull().sum())
+## Results from the supplied CSV
 
-# Count fully duplicated rows
-print("Duplicate rows:", df.duplicated().sum())
+These values are from running `Python_Code/project.py` on the supplied CSV with the recorded environment. The dataset has 10,000 rows and 13 columns, with 0 missing cells and 0 exact duplicate rows. The IQR rule flagged 101 input-feature values; the script capped those five input measurements at their IQR limits, leaving 10,000 rows and 0 flagged input outliers. It does not cap the SoH target.
 
-# Inspect battery types and status labels
-print("\nBattery types:")
-print(df["Battery_Type"].value_counts(dropna=False))
+The script used 8,000 training rows and 2,000 held-out testing rows. Five-fold cross-validation was performed on training rows only.
 
-print("\nBattery status:")
-print(df["Battery_Status"].value_counts(dropna=False))
+| Model | Mean five-fold CV R² (unitless) | Test MAE (%) | Test MSE (%²) | Test RMSE (%) | Test R² (unitless) |
+|---|---:|---:|---:|---:|---:|
+| Linear | 0.8004 | 1.0687 | 2.2163 | 1.4887 | 0.7916 |
+| Ridge (L2) | 0.8004 | 1.0687 | 2.2163 | 1.4887 | 0.7916 |
+| Lasso (L1) | 0.7976 | 1.0623 | 2.2665 | 1.5055 | 0.7868 |
+
+Linear and Ridge tie at the displayed four-decimal precision for cross-validation R². The program selects Linear as the best model according to the sorted result table. These scores measure performance on this simulated dataset only.
+
+The teaching-only simple regression uses charging cycles (cycles) to predict SoH (%):
+
+```text
+SOH (%) = -0.009001 (% per cycle) * cycles + 99.920179 (%)
+Training R² (unitless): 0.762814
+Training RSS (%²): 25094.825246
 ```
 
-Do not automatically remove every row with a missing value or every duplicate without first checking what they represent. Choose a cleaning strategy based on the inspection results.
+Because this line is fitted and scored on the same cleaned records, its R² is an in-sample teaching result, not an independent test score.
 
-## 11. Exploratory Data Analysis (EDA)
+For one held-out sample, the input was vehicle age 68 months, 432 charging cycles, average temperature 24.3 °C, fast-charge ratio 0.91, and average discharge rate 0.61 C-rate. The actual SoH was 97.31%; the selected model predicted 95.41%.
 
-### 11.1 Battery health distribution
+## EDA charts
 
-```python
-import matplotlib.pyplot as plt
-import seaborn as sns
+Charts are saved by the Python program and can be viewed here on GitHub:
 
-plt.figure(figsize=(8, 5))
-sns.histplot(data=df, x="SoH_Percent", bins=30, kde=True)
-plt.title("Distribution of Battery State of Health")
-plt.xlabel("State of Health (%)")
-plt.ylabel("Number of records")
-plt.tight_layout()
-plt.show()
+![SoH histogram and density curve](Reports/soh_histogram.png)
+
+![SoH box plot](Reports/soh_boxplot.png)
+
+![Charging cycles versus SoH](Reports/cycles_vs_soh.png)
+
+![Correlation heatmap](Reports/correlation_heatmap.png)
+
+![Battery status pie chart](Reports/battery_status_pie.png)
+
+![Battery type bar chart](Reports/battery_type_bar.png)
+
+![Simple regression line](Reports/simple_regression_line.png)
+
+## Common mistakes and how to avoid them
+
+- **Calling the records real-world measurements:** The Kaggle description says they are synthetic; state that clearly.
+- **Using the identifier as a predictor:** `Vehicle_ID` is not a physical battery measurement, so it is excluded.
+- **Using a field derived from SoH:** `Battery_Status` and internal resistance may reveal the target; keep them out of the primary model.
+- **Assuming capacity is harmless:** Battery capacity can be directly related to the SoH calculation. This project excludes it from model inputs and documents the risk.
+- **Fitting a scaler before cross-validation:** The script puts scaling inside each scikit-learn pipeline so each fold learns scaling values only from its training portion.
+- **Reporting training scores as final performance:** Use the held-out test scores for the model comparison; the simple-regression R² is clearly labelled in-sample.
+- **Treating IQR flags as errors:** The script caps the five input measurements, not the target. Review unusual values before deciding whether they are mistakes.
+- **Running from the wrong folder:** Run the command from the repository root so the relative CSV and output paths resolve.
+- **Opening an untrusted pickle file:** Only load `best_model.pkl` from a source you trust.
+
+## Limitations and future improvements
+
+### Limitations
+
+- The records are synthetic simulations, not battery-lab measurements or real fleet observations.
+- A random row split may put very similar simulated records in both training and testing sets.
+- The project does not test on a separate vehicle, battery pack, manufacturer, or time period.
+- The first model omits categorical information such as battery chemistry and vehicle model.
+- The displayed scores should not be used for maintenance, warranty, or safety decisions.
+
+### Future improvements
+
+- Obtain permission to use measured EV battery-test data and validate predictions on it.
+- Split by vehicle or battery pack, or use a time-based test split, to test generalization to unseen batteries.
+- Compare models with and without capacity and resistance, while treating target leakage carefully.
+- Encode useful categories such as battery type, then compare them against the simple numeric baseline.
+- Tune Ridge and Lasso strengths using cross-validation on training data only.
+- Record dataset version, measurement procedure, and units in a data dictionary.
+
+## Create and push a GitHub repository
+
+For a new local project, open a terminal in the project root. The `.gitignore` in this project keeps virtual environments, generated Python cache files, and the original course PDFs out of Git.
+
+```powershell
+git init
+git branch -M main
+git add .
+git commit -m "Add EV battery health mini project"
 ```
 
-### 11.2 Charging cycles versus battery health
+Create an empty repository on GitHub (do not add a second README there). Then connect and push:
 
-```python
-plt.figure(figsize=(8, 5))
-sns.scatterplot(
-    data=df,
-    x="Total_Charging_Cycles",
-    y="SoH_Percent",
-    hue="Battery_Type"
-)
-plt.title("Charging Cycles vs. Battery State of Health")
-plt.xlabel("Total Charging Cycles")
-plt.ylabel("State of Health (%)")
-plt.tight_layout()
-plt.show()
+```powershell
+git remote add origin https://github.com/YOUR_USERNAME/EV_Battery_Health_Prediction.git
+git push -u origin main
 ```
 
-### 11.3 Compare health by battery chemistry
+If `git remote -v` already shows a remote, use that existing remote rather than adding another one. Review `git status` and `git diff --cached` before committing so you do not include unrelated files or course handouts.
 
-```python
-print(
-    df.groupby("Battery_Type")["SoH_Percent"]
-      .agg(["count", "mean", "median", "min", "max"])
-)
+### Clone and run as another student
+
+```powershell
+git clone https://github.com/YOUR_USERNAME/EV_Battery_Health_Prediction.git
+cd EV_Battery_Health_Prediction
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python Python_Code\project.py
 ```
 
-These plots and summaries describe patterns in the dataset. They do not, by themselves, establish that a feature causes battery degradation.
+## Final submission checklist
 
-## 12. Understand the Key Imports, Models, and Functions
+- [ ] Confirm faculty approval for the project topic and dataset; the supplied dataset is synthetic and does not meet the course's real-world-data requirement on its own.
+- [ ] Add the student's name, roll number, academic year, and any required faculty details to the report before submission.
+- [ ] Keep `Dataset/EV_Battery_Dataset.csv`, `Python_Code/project.py`, `Reports/EDA_Report.html`, and `Reports/Project_Report.pdf` in the required folders.
+- [ ] Run the project from the repository root and confirm that the charts, saved model, and PDF are regenerated.
+- [ ] Review the reported units, metrics, leakage exclusions, and synthetic-data limitation before explaining the work in the viva.
+- [ ] Do not publish the original course PDFs unless redistribution is permitted.
 
-An **import** makes a class or function from a library available to your code.
+## Author
 
-| Import or function | Type | Purpose |
-|---|---|---|
-| `import pandas as pd` | Library import | Loads Pandas for working with tabular data. |
-| `pd.read_csv()` | Function | Reads a CSV file into a DataFrame. |
-| `train_test_split()` | Function | Splits data into training and testing sets. |
-| `LinearRegression()` | Model class | Creates a linear regression model for numerical prediction. |
-| `RandomForestRegressor()` | Model class | Creates a regression model based on an ensemble of decision trees. |
-| `model.fit(X_train, y_train)` | Method | Trains the model on the training data. |
-| `model.predict(X_test)` | Method | Produces predictions for the test inputs. |
-| `mean_absolute_error()` | Metric function | Measures the average absolute prediction error. |
-| `mean_squared_error()` | Metric function | Measures the average squared prediction error. |
-| `r2_score()` | Metric function | Measures how well predictions explain variation in the target. |
-| `OneHotEncoder()` | Transformer class | Converts categorical values into numerical indicator features. |
-| `ColumnTransformer()` | Transformer class | Applies different preprocessing to different columns. |
-| `Pipeline()` | Pipeline class | Combines preprocessing and model steps into one workflow. |
+**Author:** [Add your name]
 
-### What do `X` and `y` mean?
+**Course:** BCA Sem-III, 303-05 Fundamentals of Machine Learning
 
-- **`X`** contains the input features used by the model.
-- **`y`** contains the target value the model is learning to predict.
-- **`X_train` and `y_train`** are used for training.
-- **`X_test` and `y_test`** are held out for evaluation.
-- **`y_pred`** contains the model's predictions for `X_test`.
+**Project:** EV Battery Health Prediction
 
-### What do the evaluation metrics mean?
-
-- **MAE:** Average absolute error, in the target's units. If MAE is 2, predictions are off by an average of 2 SoH percentage points.
-- **MSE:** Average squared error. It penalizes large errors more strongly and is expressed in squared target units.
-- **RMSE:** Square root of MSE, expressed in the target's units.
-- **R²:** A score of 1 indicates perfect predictions; 0 means performance equivalent to predicting the test-set mean; a negative score means worse performance than that baseline.
-
-## 13. Train and Compare Regression Models
-
-This example trains both **Linear Regression** and **Random Forest Regression**. It uses a preprocessing pipeline to handle categorical columns and keeps the test set separate until evaluation.
-
-The example deliberately excludes `Battery_Status` from the regression inputs because it may be derived from battery health. Including a target-derived field can cause data leakage. `Vehicle_ID` is also excluded because it is an identifier, not a meaningful measurement.
-
-```python
-import pandas as pd
-
-from sklearn.model_selection import train_test_split
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import (
-    mean_absolute_error,
-    mean_squared_error,
-    r2_score
-)
-
-# 1. Load the dataset
-df = pd.read_csv("ev_battery_degradation_v1.csv")
-
-# 2. Set the regression target
-target = "SoH_Percent"
-
-# Remove rows where the target is missing
-df = df.dropna(subset=[target]).copy()
-
-# Exclude the target, identifier, and possible target-derived status
-columns_to_drop = [target, "Vehicle_ID", "Battery_Status"]
-X = df.drop(columns=columns_to_drop, errors="ignore")
-y = df[target]
-
-# 3. Identify numerical and categorical input columns
-categorical_features = X.select_dtypes(
-    include=["object", "category", "bool"]
-).columns.tolist()
-
-numerical_features = X.select_dtypes(
-    include=["number"]
-).columns.tolist()
-
-# 4. Preprocess numerical and categorical columns separately
-numeric_preprocessor = Pipeline(
-    steps=[
-        ("imputer", SimpleImputer(strategy="median"))
-    ]
-)
-
-categorical_preprocessor = Pipeline(
-    steps=[
-        ("imputer", SimpleImputer(strategy="most_frequent")),
-        ("onehot", OneHotEncoder(handle_unknown="ignore"))
-    ]
-)
-
-preprocessor = ColumnTransformer(
-    transformers=[
-        ("numeric", numeric_preprocessor, numerical_features),
-        ("categorical", categorical_preprocessor, categorical_features)
-    ]
-)
-
-# 5. Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.20,
-    random_state=42
-)
-
-# 6. Define the models
-models = {
-    "Linear Regression": LinearRegression(),
-    "Random Forest": RandomForestRegressor(
-        n_estimators=200,
-        random_state=42,
-        n_jobs=-1
-    )
-}
-
-# 7. Train and evaluate each model
-results = []
-
-for name, regressor in models.items():
-    model = Pipeline(
-        steps=[
-            ("preprocessor", preprocessor),
-            ("regressor", regressor)
-        ]
-    )
-
-    # Train the model
-    model.fit(X_train, y_train)
-
-    # Predict the test-set target
-    y_pred = model.predict(X_test)
-
-    # Calculate evaluation metrics
-    mae = mean_absolute_error(y_test, y_pred)
-    mse = mean_squared_error(y_test, y_pred)
-    rmse = mse ** 0.5
-    r2 = r2_score(y_test, y_pred)
-
-    results.append({
-        "Model": name,
-        "MAE": mae,
-        "MSE": mse,
-        "RMSE": rmse,
-        "R2": r2
-    })
-
-# 8. Display the comparison
-results_df = pd.DataFrame(results).sort_values("MAE")
-print(results_df.to_string(index=False))
-```
-
-### How to interpret the comparison
-
-- Lower **MAE**, **MSE**, and **RMSE** generally indicate smaller errors on the same test set.
-- Higher **R²** generally indicates a better fit to the test targets.
-- Do not assume one model will always win; compare the measured results.
-- For a more reliable estimate, consider cross-validation and a final independent test set.
-
-## 14. Predict Battery Health for New Data
-
-After choosing and fitting a model, use the same feature columns and preprocessing pipeline to make predictions for new records.
-
-For example, add the following after fitting the `model` you want to use in Section 13:
-
-```python
-# Predict the test-set battery health
-y_pred = model.predict(X_test)
-
-# Show actual and predicted values for a few records
-comparison = pd.DataFrame({
-    "Actual_SoH": y_test.to_numpy(),
-    "Predicted_SoH": y_pred
-})
-
-print(comparison.head(10))
-```
-
-For genuinely new records, create a DataFrame containing the same input feature columns used during training. Do not include the target column or `Battery_Status` in the regression inputs.
-
-## 15. Project Workflow
-
-1. **Download:** Obtain the CSV file from Kaggle.
-2. **Inspect:** Review the dataset shape, columns, data types, and target values.
-3. **Clean:** Check missing values, duplicates, and invalid entries.
-4. **Explore:** Plot distributions and investigate feature relationships.
-5. **Prepare:** Select features, handle missing values, and encode categorical data.
-6. **Train:** Fit baseline and alternative regression models.
-7. **Evaluate:** Compare MAE, MSE, RMSE, and R² on held-out data.
-8. **Interpret:** Examine errors, model behavior, and important features.
-9. **Validate:** Where possible, evaluate on independent real-world battery data.
-
-## 16. Limitations and Good Practices
-
-- **Synthetic data:** The records are simulated and may not capture all real battery behaviors.
-- **Generalization:** Strong results on synthetic data do not guarantee strong performance on real vehicles.
-- **Data leakage:** Exclude columns that directly or indirectly reveal the target.
-- **Identifiers:** Usually exclude identifiers such as `Vehicle_ID` from model features unless there is a justified use.
-- **Validation:** Use an appropriate split strategy. If multiple records belong to the same vehicle, consider a group-based split to reduce leakage across records.
-- **Reproducibility:** Set a random seed when splitting data and training models.
-- **Safety:** Do not use this model alone to make real-world battery safety or replacement decisions.
-
-## 17. Conclusion
-
-The Electric Vehicle (EV) Battery Degradation & Charge dataset offers 10,000 synthetic records for exploring battery health and developing initial machine-learning models. Its features include battery chemistry, vehicle age, charging cycles, temperature, charging behavior, discharge rate, internal resistance, and battery-health targets.
-
-This project demonstrates a typical machine-learning workflow: loading data, inspecting and visualizing it, preparing features, training Linear Regression and Random Forest models, and evaluating predictions with standard regression metrics.
-
-Because the dataset is synthetic, its results should be treated as an educational and experimental starting point. Independent real-world validation is necessary before practical deployment.
-
-## 18. References
-
-- **Dataset and documentation:** [Electric Vehicle (EV) Battery Degradation & Charge — Kaggle](https://www.kaggle.com/datasets/bertnardomariouskono/electric-vehicle-ev-battery-degradation-and-charge/data)
-- **Pandas documentation:** https://pandas.pydata.org/docs/
-- **scikit-learn documentation:** https://scikit-learn.org/stable/
-- **Matplotlib documentation:** https://matplotlib.org/stable/
-- **Seaborn documentation:** https://seaborn.pydata.org/
-
----
-
-**Dataset file:** `ev_battery_degradation_v1.csv`  
-**Primary regression target:** `SoH_Percent`  
-**Classification target:** `Battery_Status`  
-**Dataset license:** Apache 2.0, as listed on the Kaggle dataset page.
+Fill in your name before submitting the project.

@@ -1,4 +1,9 @@
 venv/
 .venv/
+.venv-*/
 env/
 ENV/
+__pycache__/
+*.py[cod]
+Fundamentals of Machine Learning/*
+!Fundamentals of Machine Learning/README.md
