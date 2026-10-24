@@ -5,5 +5,5 @@ env/
 ENV/
 __pycache__/
 *.py[cod]
+.vscode/
 Fundamentals of Machine Learning/*
-!Fundamentals of Machine Learning/README.md
