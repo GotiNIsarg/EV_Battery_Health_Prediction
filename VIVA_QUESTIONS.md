@@ -38,4 +38,4 @@
 
 10. **What were the result and main limitation?**
 
-    Linear Regression was selected by mean cross-validation R² (0.8004, unitless; tied with Ridge at four decimal places). Its held-out MAE was 1.0687 percentage points (%). The main limitation is that the data is synthetic, so these results do not validate performance on real batteries.
+    Linear Regression was selected by mean cross-validation R² (0.8008, unitless; tied with Ridge at four decimal places). Its held-out MAE was 1.0687 percentage points (%). The main limitation is that the data is synthetic, so these results do not validate performance on real batteries.
