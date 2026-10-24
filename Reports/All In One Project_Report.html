@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A beginner-friendly report on EV battery State of Health prediction with Linear Regression.">
+  <title>EV Battery Health Prediction | Project Report</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172b3a;
+      --muted: #526575;
+      --paper: #f4f7fa;
+      --card: #ffffff;
+      --line: #d9e2e9;
+      --blue: #155e75;
+      --blue-light: #e8f4f7;
+      --warning: #fff5dc;
+      --warning-line: #e6b64c;
+      --shadow: 0 8px 24px rgba(23, 43, 58, .07);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 16px/1.65 "Segoe UI", Arial, sans-serif;
+    }
+    a { color: var(--blue); }
+    .hero {
+      padding: 56px 24px 48px;
+      background: linear-gradient(135deg, #123047, #176d7c);
+      color: #fff;
+    }
+    .hero-inner, main, footer { width: min(1100px, calc(100% - 40px)); margin: 0 auto; }
+    .eyebrow { margin: 0 0 10px; color: #c9e9ef; font-size: .9rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { max-width: 780px; margin: 0; font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.12; }
+    .subtitle { max-width: 760px; margin: 16px 0 0; color: #e3f0f3; font-size: 1.08rem; }
+    .notice {
+      margin: 28px 0 0;
+      padding: 16px 18px;
+      border-left: 5px solid var(--warning-line);
+      border-radius: 8px;
+      background: var(--warning);
+      color: #453716;
+    }
+    nav {
+      position: sticky;
+      z-index: 5;
+      top: 0;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .96);
+      backdrop-filter: blur(8px);
+    }
+    nav .links {
+      display: flex;
+      width: min(1100px, calc(100% - 40px));
+      margin: 0 auto;
+      gap: 8px 20px;
+      overflow-x: auto;
+      padding: 12px 0;
+      white-space: nowrap;
+    }
+    nav a { font-size: .9rem; font-weight: 650; text-decoration: none; }
+    main { padding: 32px 0 60px; }
+    section { scroll-margin-top: 78px; margin: 0 0 30px; }
+    h2 { margin: 0 0 14px; font-size: 1.65rem; line-height: 1.25; }
+    h3 { margin: 0 0 8px; font-size: 1.12rem; }
+    p { margin: 8px 0; }
+    .card {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .stat { padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+    .stat strong { display: block; color: var(--blue); font-size: 1.5rem; }
+    .stat span { color: var(--muted); font-size: .9rem; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .chart-card { display: flex; flex-direction: column; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+    .chart-card img { display: block; width: 100%; height: auto; border-radius: 7px; }
+    .chart-card p { margin: 10px 4px 2px; color: var(--muted); font-size: .93rem; }
+    .chart-card h3 { margin: 8px 4px 0; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--blue-light); }
+    code { padding: 2px 5px; border-radius: 4px; background: #edf2f5; font-family: Consolas, monospace; }
+    pre { overflow-x: auto; padding: 14px; border-radius: 9px; background: #102432; color: #eff7fa; }
+    pre code { padding: 0; background: transparent; color: inherit; }
+    .note { color: var(--muted); font-size: .94rem; }
+    footer { padding: 0 0 32px; color: var(--muted); font-size: .9rem; }
+    @media (max-width: 720px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid { grid-template-columns: 1fr; }
+      .hero { padding-top: 38px; }
+      .card { padding: 17px; }
+    }
+    @media print {
+      body { background: #fff; }
+      nav { position: static; }
+      .hero { padding: 24px; }
+      .card, .stat, .chart-card { box-shadow: none; break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">BCA Sem-III · Course 303-05 · Beginner project</p>
+      <h1>EV Battery Health Prediction</h1>
+      <p class="subtitle">A simple machine-learning study that estimates battery State of Health (SoH, %) using Linear Regression.</p>
+      <div class="notice"><strong>Important data note:</strong> Kaggle describes this dataset as synthetic. It is not measured real-world battery test data. Ask your teacher to approve it before submission. These results do not prove performance on real batteries.</div>
+    </div>
+  </header>
+  <nav aria-label="Report sections">
+    <div class="links">
+      <a href="#dataset">Dataset</a><a href="#lifecycle">ML life cycle</a><a href="#charts">Charts</a>
+      <a href="#results">Results</a><a href="#prediction">Prediction</a><a href="#limits">Limitations</a>
+    </div>
+  </nav>
+  <main>
+    <section id="dataset">
+      <div class="card">
+        <h2>1. Project and dataset</h2>
+        <p><strong>Problem:</strong> Battery health reduces as a battery is used. This project estimates its health as a percentage.</p>
+        <p><strong>Objective:</strong> Compare a simple model using charging cycles with a multiple model using five selected measurements.</p>
+        <p><strong>Source:</strong> <a href="https://www.kaggle.com/datasets/bertnardomariouskono/electric-vehicle-ev-battery-degradation-and-charge">Electric Vehicle (EV) Battery Degradation and Charge on Kaggle</a>.</p>
+        <div class="stats" aria-label="Dataset summary">
+          <div class="stat"><strong>10,000</strong><span>records (rows)</span></div>
+          <div class="stat"><strong>13</strong><span>columns</span></div>
+          <div class="stat"><strong>0</strong><span>missing cells found</span></div>
+          <div class="stat"><strong>0</strong><span>duplicate rows found</span></div>
+        </div>
+        <h3 style="margin-top:22px">Column names and units</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Column</th><th>Meaning</th><th>Unit or kind</th></tr></thead>
+            <tbody>
+              <tr><td><code>Vehicle_ID</code></td><td>Vehicle record identifier</td><td>ID; no physical unit</td></tr>
+              <tr><td><code>Car_Model</code></td><td>Vehicle model</td><td>Text category</td></tr>
+              <tr><td><code>Battery_Type</code></td><td>Battery chemistry type</td><td>Text category</td></tr>
+              <tr><td><code>Battery_Capacity_kWh</code></td><td>Listed battery capacity</td><td>kWh</td></tr>
+              <tr><td><code>Vehicle_Age_Months</code></td><td>Vehicle age</td><td>months</td></tr>
+              <tr><td><code>Total_Charging_Cycles</code></td><td>Number of charge cycles</td><td>cycles</td></tr>
+              <tr><td><code>Avg_Temperature_C</code></td><td>Average temperature</td><td>°C</td></tr>
+              <tr><td><code>Fast_Charge_Ratio</code></td><td>Share of fast charging</td><td>0–1; unitless</td></tr>
+              <tr><td><code>Avg_Discharge_Rate_C</code></td><td>Average discharge rate</td><td>C-rate</td></tr>
+              <tr><td><code>Driving_Style</code></td><td>Driving style</td><td>Text category</td></tr>
+              <tr><td><code>Internal_Resistance_Ohm</code></td><td>Internal electrical resistance</td><td>Ω</td></tr>
+              <tr><td><code>SoH_Percent</code></td><td>State of Health</td><td>%; prediction target</td></tr>
+              <tr><td><code>Battery_Status</code></td><td>Battery status label</td><td>Text category</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Model inputs: vehicle age (months), charging cycles (cycles), average temperature (°C), fast-charge ratio (unitless), and discharge rate (C-rate). We leave out ID and text fields. Capacity and resistance are excluded because they may be closely linked to SoH; using them could cause target leakage and an unrealistically high score.</p>
+      </div>
+    </section>
+    <section id="lifecycle">
+      <div class="card">
+        <h2>2. Machine Learning life cycle</h2>
+        <p>We follow the stages in order: define the question, inspect and prepare data, explore patterns, select inputs, train, test, predict, and monitor.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Stage</th><th>Simple meaning</th><th>What this project does</th></tr></thead>
+            <tbody>
+              <tr><td>1. Problem definition</td><td>Choose the question to answer.</td><td>Estimate one battery's SoH (%) from battery measurements.</td></tr>
+              <tr><td>2. Data collection</td><td>Get and inspect useful examples.</td><td>Load the CSV with pandas; inspect shape, head, types, and numeric summary.</td></tr>
+              <tr><td>3. Data preparation</td><td>Check data quality and unusual inputs.</td><td>Check missing values and duplicates; cap outlying input values using the IQR rule.</td></tr>
+              <tr><td>4. EDA</td><td>Use charts to understand the data.</td><td>Make six charts: histogram, box plot, scatter plot, heatmap, pie chart, and bar chart.</td></tr>
+              <tr><td>5. Feature selection</td><td>Choose the information the model can use.</td><td>Use five measurements for multiple regression; use charging cycles alone for simple regression.</td></tr>
+              <tr><td>6. Train/test split</td><td>Keep some examples unseen during learning.</td><td>Use an 80/20 split: 8,000 training rows and 2,000 test rows.</td></tr>
+              <tr><td>7. Training</td><td>Learn a line that relates inputs to SoH.</td><td>Fit simple and multiple Linear Regression models using scikit-learn.</td></tr>
+              <tr><td>8. Evaluation</td><td>Compare predictions with known test answers.</td><td>Calculate MAE, MSE, RMSE, and R² on the held-out test rows.</td></tr>
+              <tr><td>9. Prediction</td><td>Estimate SoH for new measurements.</td><td>Ask for five values in the terminal and print predicted SoH (%).</td></tr>
+              <tr><td>10. Monitoring</td><td>Check the model again when new evidence arrives.</td><td>Later, compare predictions with approved measured SoH and retrain if accuracy changes.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 style="margin-top:22px">Cleaning results</h3>
+        <p>The supplied file had 0 missing cells and 0 duplicate rows. The five selected inputs had 101 outlier values before capping and 0 after; all 10,000 rows remained. The IQR limits are calculated before the train/test split, so information from the test set can influence cleaning. A more advanced workflow would calculate limits from training data only.</p>
+        <figure class="chart-card">
+          <img src="data_cleaning.png" alt="Table comparing row count, missing values, duplicate rows, and input outliers before and after cleaning">
+          <figcaption><p>Before-and-after data checks; row counts are records and outliers are input values.</p></figcaption>
+        </figure>
+      </div>
+    </section>
+    <section id="charts">
+      <h2>3. Charts and what they show</h2>
+      <p class="note">Each chart is a PNG created by the project script. Charts describe this synthetic dataset; they are not proof of real-battery behavior.</p>
+      <div class="grid">
+        <figure class="chart-card"><h3>Dataset summary</h3><img src="dataset_summary.png" alt="Dataset row, column, numeric and text column, missing cell, and duplicate row counts"><figcaption><p>Rows and columns count records and fields; missing cells and duplicates were not found.</p></figcaption></figure>
+        <figure class="chart-card"><h3>SoH histogram</h3><img src="soh_histogram.png" alt="Histogram of battery State of Health values in percent"><figcaption><p>Shows how often SoH values (%) occur in each range.</p></figcaption></figure>
+        <figure class="chart-card"><h3>SoH box plot</h3><img src="soh_boxplot.png" alt="Box plot of State of Health values in percent"><figcaption><p>Shows the median, spread, and unusual SoH values (%).</p></figcaption></figure>
+        <figure class="chart-card"><h3>Charging cycles vs SoH</h3><img src="cycles_vs_soh.png" alt="Scatter plot of total charging cycles against State of Health"><figcaption><p>Each point is a record: horizontal position is charging cycles; vertical position is SoH (%).</p></figcaption></figure>
+        <figure class="chart-card"><h3>Correlation heatmap</h3><img src="correlation_heatmap.png" alt="Heatmap of correlations between five model inputs and State of Health"><figcaption><p>Shows pairwise numeric relationships; correlation is unitless and does not prove cause.</p></figcaption></figure>
+        <figure class="chart-card"><h3>Battery status pie chart</h3><img src="battery_status_pie.png" alt="Pie chart showing the share of battery status categories"><figcaption><p>Shows category share as percent of dataset records; categories can be imbalanced.</p></figcaption></figure>
+        <figure class="chart-card"><h3>Battery type bar chart</h3><img src="battery_type_bar.png" alt="Bar chart counting records by battery type"><figcaption><p>Bar height is the number of dataset records for each battery type.</p></figcaption></figure>
+        <figure class="chart-card"><h3>Feature and split summary</h3><img src="feature_split.png" alt="Summary of selected model features, target, and train-test row counts"><figcaption><p>Lists the selected inputs and shows the 8,000-row / 2,000-row train-test split.</p></figcaption></figure>
+        <figure class="chart-card"><h3>Simple regression line</h3><img src="simple_regression_line.png" alt="Simple linear regression line using charging cycles to predict State of Health"><figcaption><p>Shows the fitted simple-model line between cycles and SoH (%).</p></figcaption></figure>
+        <figure class="chart-card"><h3>Model evaluation results</h3><img src="model_results.png" alt="Table comparing evaluation measures for simple and multiple Linear Regression"><figcaption><p>Test-set errors are in percentage points or squared percentage points; R² is unitless.</p></figcaption></figure>
+        <figure class="chart-card"><h3>Held-out example</h3><img src="sample_prediction.png" alt="Actual and predicted State of Health for one test record"><figcaption><p>One example compares measured test SoH (%) with the multiple model's prediction (%).</p></figcaption></figure>
+        <figure class="chart-card"><h3>New-input prediction</h3><img src="deployment_prediction.png" alt="Example predicted State of Health for new input values"><figcaption><p>Example terminal prediction for the entered battery measurements; result is SoH (%).</p></figcaption></figure>
+      </div>
+    </section>
+    <section id="results">
+      <div class="card">
+        <h2>4. Test results</h2>
+        <p>These are measured outputs from the supplied CSV run. MAE and RMSE are in percentage points of SoH; MSE is in squared percentage points; R² has no unit.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Model</th><th>Inputs</th><th>MAE (percentage points)</th><th>MSE (percentage points²)</th><th>RMSE (percentage points)</th><th>R² (unitless)</th></tr></thead>
+            <tbody>
+              <tr><td>Simple Linear Regression</td><td>Charging cycles only</td><td>1.1215</td><td>2.6546</td><td>1.6293</td><td>0.7503</td></tr>
+              <tr><td>Multiple Linear Regression</td><td>Five selected inputs</td><td>1.0687</td><td>2.2163</td><td>1.4887</td><td>0.7916</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>On this test split, the multiple-input model has lower errors and higher R². This only describes performance on this synthetic dataset and split, not on real EV batteries.</p>
+      </div>
+    </section>
+    <section id="prediction">
+      <div class="card">
+        <h2>5. Using the program</h2>
+        <p>Run <code>python Python_Code/project.py</code>. The program asks for vehicle age (months), cycles (cycles), temperature (°C), fast-charge ratio (0–1), and discharge rate (C-rate), then prints the estimated SoH (%). Enter values in the same units and realistic ranges used in the CSV.</p>
+        <p>The terminal is the simple user-input interface. Python loads the data and runs the trained model behind the scenes. The PNG charts and this HTML file are saved reports, not a website or interactive app.</p>
+        <figure class="chart-card">
+          <img src="deployment_prediction.png" alt="Example bar chart of predicted State of Health">
+          <figcaption><p>Example display of the predicted SoH (%); a prediction is an estimate, not a battery test.</p></figcaption>
+        </figure>
+      </div>
+    </section>
+    <section id="limits">
+      <div class="card">
+        <h2>6. Limitations and next steps</h2>
+        <ul>
+          <li>The dataset is synthetic; ask the teacher to approve it or use an approved measured dataset.</li>
+          <li>Results do not establish that the model works on real batteries.</li>
+          <li>IQR limits are computed before the split, which can leak test-set information into preparation.</li>
+          <li>Battery health may depend on factors not included in the five model inputs.</li>
+          <li>Capacity and resistance are excluded because they may be closely linked to the target.</li>
+        </ul>
+        <p><strong>Future improvements:</strong> repeat the work with teacher-approved measured data, fit cleaning limits using only training rows, and compare predictions with new measured SoH over time.</p>
+        <p><strong>Author:</strong> Student project — BCA Sem-III.</p>
+      </div>
+    </section>
+  </main>
+  <footer>This is a static HTML report. Its images are local files in this Reports folder; keep the PNG files beside this HTML file.</footer>
+</body>
+</html>
