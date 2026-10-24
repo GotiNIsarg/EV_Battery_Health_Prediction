@@ -84,11 +84,17 @@ Question: What is this battery's State of Health (SoH, %)?
 Here we load the supplied CSV and inspect its rows, columns, types, and summaries.
 
 ```python
+
 df = pd.read_csv("Dataset/EV_Battery_Dataset.csv")  # Load the supplied CSV.
+
 print("Shape (rows, columns):", df.shape)  # Show the dataset size.
+
 print(df.head())  # Show the first five records.
+
 df.info()  # Show column names and data types.
+
 print(df.describe())  # Summarize numeric columns.
+
 ```
 
 **Result:** The CSV contains **10,000 rows × 13 columns**, 8 number columns, and 5 text columns.
@@ -97,7 +103,7 @@ print(df.describe())  # Summarize numeric columns.
 
 The summary image shows the CSV row, column, type, blank-cell, and duplicate counts.
 
-The separate [HTML project report](Reports/All%20In%20One%20Project_Report.html) shows the dataset, all charts, model results, and limitations in one browser page. It is a static report; the Python program does not generate HTML.
+The separate [All In One Project_Report.html](Reports/All%20In%20One%20Project_Report.html) shows the dataset, all charts, model results, and limitations in one browser page. It is a static report; the Python program does not generate HTML.
 
 ### Stage 3 — Data cleaning and preparation
 
@@ -105,22 +111,27 @@ The separate [HTML project report](Reports/All%20In%20One%20Project_Report.html)
 We remove duplicate or blank rows and cap unusual values in the five inputs.
 
 ```python
+
 feature_columns = ["Vehicle_Age_Months", "Total_Charging_Cycles", "Avg_Temperature_C", "Fast_Charge_Ratio", "Avg_Discharge_Rate_C"]  # Choose inputs.
 outliers_before = 0  # Start counting input outliers.
+
 for col in feature_columns:  # Check each input column.
     q1 = df[col].quantile(0.25)  # Find the lower quarter.
     q3 = df[col].quantile(0.75)  # Find the upper quarter.
     low = q1 - 1.5 * (q3 - q1)  # Find the lower limit.
     high = q3 + 1.5 * (q3 - q1)  # Find the upper limit.
     outliers_before += ((df[col] < low) | (df[col] > high)).sum()  # Count unusual values.
+
 df = df.drop_duplicates()  # Remove duplicate rows.
 df = df.dropna()  # Remove rows with missing values.
+
 for col in feature_columns:  # Clean each input column.
     q1 = df[col].quantile(0.25)  # Find its lower quarter.
     q3 = df[col].quantile(0.75)  # Find its upper quarter.
     low = q1 - 1.5 * (q3 - q1)  # Find the lower limit.
     high = q3 + 1.5 * (q3 - q1)  # Find the upper limit.
     df[col] = df[col].clip(low, high)  # Cap unusual input values.
+
 ```
 
 ![Before-and-after cleaning results](Reports/data_cleaning.png)
@@ -133,24 +144,31 @@ The check found **0 missing cells**, **0 duplicate rows**, and **101 input outli
 We draw six charts; the heatmap values are unitless correlations.
 
 ```python
+
 plt.figure()  # Start a histogram.
 sns.histplot(df["SoH_Percent"])  # Show SoH values (%).
 plt.savefig("Reports/soh_histogram.png")  # Save the histogram.
+
 plt.figure()  # Start a box plot.
 plt.boxplot(df["SoH_Percent"], orientation="vertical")  # Show SoH spread (%).
 plt.savefig("Reports/soh_boxplot.png")  # Save the box plot.
+
 plt.figure()  # Start a scatter plot.
 plt.scatter(df["Total_Charging_Cycles"], df["SoH_Percent"])  # Compare cycles and SoH.
 plt.savefig("Reports/cycles_vs_soh.png")  # Save the scatter plot.
+
 plt.figure()  # Start a heatmap.
 sns.heatmap(df[feature_columns + ["SoH_Percent"]].corr(), annot=True)  # Show unitless correlations.
 plt.savefig("Reports/correlation_heatmap.png")  # Save the heatmap.
+
 plt.figure()  # Start a pie chart.
 plt.pie(df["Battery_Status"].value_counts(), labels=df["Battery_Status"].value_counts().index)  # Show status shares.
 plt.savefig("Reports/battery_status_pie.png")  # Save the pie chart.
+
 plt.figure()  # Start a bar chart.
 plt.bar(df["Battery_Type"].value_counts().index, df["Battery_Type"].value_counts().values)  # Count records.
 plt.savefig("Reports/battery_type_bar.png")  # Save the bar chart.
+
 ```
 
 ![SoH histogram](Reports/soh_histogram.png)
@@ -183,10 +201,13 @@ The bars count records for each battery type (**rows**).
 Keep some rows aside so the model can be checked on examples it did not train on.
 
 ```python
+
 X = df[feature_columns]  # Use five selected input measurements.
 y = df["SoH_Percent"]  # Predict battery health (%).
+
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)  # Split 80/20.
 print("Training rows:", len(X_train), "| Test rows:", len(X_test))  # Show split sizes.
+
 ```
 
 **Result:** **8,000 training rows** and **2,000 test rows**. The inputs use months, cycles, °C, a unitless ratio, and C-rate.
@@ -201,10 +222,13 @@ The image shows the training/test row counts, five input columns, and the SoH ta
 Simple Linear Regression uses cycles; multiple Linear Regression uses five inputs.
 
 ```python
+
 model_simple = LinearRegression()  # Make a one-input model.
 model_simple.fit(X_train[["Total_Charging_Cycles"]], y_train)  # Learn from cycles.
+
 model = LinearRegression()  # Make a five-input model.
 model.fit(X_train, y_train)  # Learn from five measurements.
+
 ```
 
 ![Simple Linear Regression line](Reports/simple_regression_line.png)
@@ -217,15 +241,20 @@ The red line is the simple model's fitted SoH (**%**) trend over charging cycles
 MAE and RMSE use percentage points (**%**); MSE uses **%²**; R² is unitless.
 
 ```python
+
 simple_prediction = model_simple.predict(X_test[["Total_Charging_Cycles"]])  # Predict using cycles.
+
 prediction = model.predict(X_test)  # Predict using five inputs.
+
 results = pd.DataFrame()  # Start a result table.
 results["Model"] = ["Simple Linear", "Multiple Linear"]  # Name each model.
 results["MAE (%)"] = [mean_absolute_error(y_test, simple_prediction), mean_absolute_error(y_test, prediction)]  # Add MAE.
 results["MSE (% squared)"] = [mean_squared_error(y_test, simple_prediction), mean_squared_error(y_test, prediction)]  # Add MSE.
 results["RMSE (%)"] = [np.sqrt(mean_squared_error(y_test, simple_prediction)), np.sqrt(mean_squared_error(y_test, prediction))]  # Add RMSE.
 results["R2 (unitless)"] = [r2_score(y_test, simple_prediction), r2_score(y_test, prediction)]  # Add R2.
+
 print(results.round(4))  # Show the scores.
+
 ```
 
 ![Linear Regression comparison results](Reports/model_results.png)
@@ -238,11 +267,14 @@ Multiple Linear Regression performed better on this test split: lower errors and
 Compare the prediction with that row's actual SoH (**%**).
 
 ```python
+
 sample = X_test.iloc[[0]]  # Select one held-out battery.
 sample_actual = y_test.iloc[0]  # Read its actual SoH (%).
 sample_prediction = model.predict(sample)[0]  # Predict its SoH (%).
+
 print("Actual SoH (%):", sample_actual)  # Show the actual answer.
 print("Predicted SoH (%):", sample_prediction)  # Show the prediction.
+
 ```
 
 ![Held-out sample prediction](Reports/sample_prediction.png)
@@ -257,6 +289,7 @@ Publishing the project on GitHub lets other students download and run it.
 **How it works:** There is no website or graphical front end. The front end is the five questions printed in the terminal. The back end is the Python program: it reads the CSV, cleans data, trains Linear Regression, and calculates a prediction. The program trains again each time it starts; it does not save a model file.
 
 ```python
+
 age_input = float(input("Vehicle age in months: "))  # Enter age.
 cycles_input = float(input("Total charging cycles (cycles): "))  # Enter cycle count.
 temperature_input = float(input("Average temperature (°C): "))  # Enter temperature.
@@ -265,6 +298,7 @@ discharge_input = float(input("Average discharge rate (C-rate): "))  # Enter dis
 new_sample = pd.DataFrame([[age_input, cycles_input, temperature_input, charge_input, discharge_input]], columns=feature_columns)  # Arrange inputs.
 new_soh = model.predict(new_sample)[0]  # Predict new SoH (%).
 print("Predicted new battery SoH (%):", new_soh)  # Show the result.
+
 ```
 
 ![New-input deployment prediction](Reports/deployment_prediction.png)
@@ -308,12 +342,14 @@ The GitHub steps above publish the files so another student can download and run
 Clone the GitHub repository, then open PowerShell in that folder:
 
 ```powershell
+
 git clone https://github.com/hitgalani/EV_Battery_Health_Prediction.git
 cd EV_Battery_Health_Prediction
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 python Python_Code\project.py
+
 ```
 
 The last command asks for five input values. Enter the units shown in the prompts.
@@ -374,19 +410,12 @@ The last command asks for five input values. Enter the units shown in the prompt
 
 **Estimated time:** Stage 1—10 minutes; 2—20; 3—30; 4—40; 5—15; 6—25; 7—20; 8—10; 9—15; 10—10. **Total: about 3 hours 15 minutes.**
 
-## Final checklist
-
-- [ ] Ask the teacher whether this synthetic dataset is acceptable or use approved real measurements.
-- [ ] Check that all 13 PNG images appear above.
-- [ ] Run `python Python_Code\project.py` and enter the five values with the correct units.
-- [ ] Fill in your name before sharing the project.
-- [ ] Explain that the model is for learning, not real battery decisions.
-
 ## 12. Complete `project.py` code
 
 This is the complete runnable program. It matches `Python_Code/project.py` exactly. Run it from the repository root.
 
 ```python
+
 import pandas as pd  # Read and check the battery data.
 import numpy as np  # Calculate the square root for RMSE.
 import matplotlib.pyplot as plt  # Draw and save charts.
@@ -748,5 +777,4 @@ plt.tight_layout()  # Fit the labels.
 plt.savefig("Reports/deployment_prediction.png", dpi=160, bbox_inches="tight")  # Save the result.
 plt.close()  # Close this chart.
 
-# Stage 10: Later, compare predictions with measured SoH and check errors.
 ```
