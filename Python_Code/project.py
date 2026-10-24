@@ -1,24 +1,25 @@
-import pandas as pd  # Read and check the battery data.
-import numpy as np  # Calculate the square root for RMSE.
-import matplotlib.pyplot as plt  # Draw and save charts.
-import seaborn as sns  # Draw simple data charts.
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-from sklearn.linear_model import LinearRegression  # Use Linear Regression only.
-from sklearn.model_selection import train_test_split  # Split training and test rows.
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score  # Check errors.
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-# Stage 1: Predict battery State of Health (SoH, %).
-
-# Stage 2: Load the supplied CSV and inspect the data.
 df = pd.read_csv("Dataset/EV_Battery_Dataset.csv")  # Load the dataset.
-print("Problem: predict battery State of Health (SoH, %).")  # Show the project goal.
+
+
 print("Dataset shape (rows, columns):", df.shape)  # Show the dataset size.
-print("First five rows:")  # Label the sample.
-print(df.head())  # Show five battery records.
-print("Dataset information:")  # Label the column details.
-df.info()  # Show column names and data types.
-print("Numeric summary:")  # Label the numeric summary.
-print(df.describe())  # Show numeric measurements.
+
+print("First five rows:")
+print(df.head())
+
+print("Dataset information:")
+df.info()
+
+print("Numeric summary:")
+print(df.describe())
 
 # Prepare a small table to show basic dataset facts.
 data_summary = pd.DataFrame(  # Make a dataset summary table.
