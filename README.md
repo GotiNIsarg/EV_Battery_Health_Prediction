@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://www.python.org/downloads/release/python-31210/"><img src="https://img.shields.io/badge/Python-3.12.10-blue" alt="Python 3.12.10"></a>
   <img src="https://img.shields.io/badge/Status-Learning%20project-informational" alt="Learning project">
-  <img src="https://img.shields.io/badge/License-MIT%20planned-lightgrey" alt="MIT license planned">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"></a>
   <a href="https://github.com/hitgalani/EV_Battery_Health_Prediction/commits/main"><img src="https://img.shields.io/github/last-commit/hitgalani/EV_Battery_Health_Prediction?label=last%20commit" alt="Last commit"></a>
 </p>
 
@@ -158,6 +158,42 @@ Predict SoH and status from user input
 Save charts and monitor limitations
 ```
 
+## Understand the Python Code
+
+Open `Python_Code/project.py`. It is one script that runs from top to bottom. It does not define custom functions or classes, so follow the printed stage names in order.
+
+| Stage | What the code does |
+|---|---|
+| 1. Problem definition | Prints the prediction goals and learning-only safety warning. |
+| 2. Data collection | Reads `Dataset/EV_Battery_Dataset.csv` into `df`, then prints its size, columns, sample rows, summaries, and status counts. |
+| 3. Data preparation | Checks required columns for missing values and duplicate rows. Counts IQR outliers but keeps them in the data. |
+| 4. EDA | Prints SoH summaries, creates a separate Sweetviz HTML report, and displays dataset charts. |
+| 5. Feature selection | Sets the five allowed columns in `feature_columns`; assigns regression inputs and target to `X` and `y`; converts the status target to 1 for Healthy and 0 for Not Healthy. |
+| 6. Train/test split | Uses 80% of rows for training and 20% for testing. The classification split is stratified to preserve the label proportions. |
+| 7. Model training | `model1` is cycles-only Linear Regression; `model2` is five-input Linear Regression; `model3` scales the inputs and trains Logistic Regression. |
+| 8. Model evaluation | Calculates regression errors and R², classification scores and confusion matrix, train/test scores, and five-fold cross-validation. |
+| 9. Prediction | Predicts SoH for one held-out test row and compares it with that row's known SoH. |
+| 10. Deployment | Asks for five values, then prints predicted status, SoH, Healthy probability, and example advice. |
+| 11. Monitoring | Prints reminders about checking future results and getting teacher approval; it does not monitor a live vehicle. |
+
+### Important variable names
+
+| Name | Simple meaning |
+|---|---|
+| `df` | The complete dataset table. |
+| `feature_columns` | The five model input column names. |
+| `X`, `y` | Regression inputs and numeric SoH target. |
+| `X_class`, `y_class` | Classification inputs and numeric status target. |
+| `X_train`, `X_test` | Input rows used for learning and final testing. |
+| `model1`, `model2`, `model3` | Simple regression, multiple regression, and logistic classification models. |
+| `new_battery` | A one-row table made from values entered by the user. |
+
+The classification model never receives `SoH_Percent` as an input. That prevents target leakage. For Sweetviz only, the script makes a temporary `Healthy` True/False column on a copy of the data because Sweetviz requires a numeric or Boolean target. This does not change the CSV or model inputs.
+
+### What happens when charts appear?
+
+Charts are saved as PNG files in `Reports/` and displayed one at a time. Close each chart window to continue. After the charts, the console prompts for the five battery measurements. The program finishes after printing the result and closing the final chart.
+
 ## Folder Structure
 
 ```text
@@ -180,7 +216,7 @@ EV_Battery_Health_Prediction/
 
 ## Installation and Setup
 
-The commands below are for **Windows PowerShell**. Run them from the folder where you want the project.
+The commands below are for **Windows PowerShell**. Install Git and Python 3.12 first. During Python setup, make sure the Python launcher (`py`) is available. Run these commands from the folder where you want the project.
 
 ### 1. Clone the repository
 
@@ -214,6 +250,12 @@ python -W error -W "ignore:pkg_resources is deprecated as an API:UserWarning" Py
 ```
 
 The program displays charts one at a time. Close each chart window to continue. It saves charts and result tables in `Reports/`, and creates `Reports/Sweetviz_EDA_Report.html`.
+
+If your terminal prompt ends with `\Python_Code>`, return to the project root first:
+
+```powershell
+cd ..
+```
 
 If you did not activate the virtual environment, use:
 
@@ -342,14 +384,16 @@ Please do not present this learning project as a real battery safety tool.
 
 ## License
 
-The project is intended to use the **MIT License**, but a `LICENSE` file is not currently included in this repository. Add the official MIT License text and copyright holder before distributing it as MIT-licensed software.
+The project code and documentation are available under the [MIT License](LICENSE). The dataset may have separate terms; check the Kaggle dataset page before reusing or redistributing it.
 
 ## Author and Contact
 
 | Contact | Details |
 |---|---|
 | Name | Hit Galani |
-| GitHub | [Hit Galani](https://github.com/hitgalanigithub.com/hitgalani) |
+| GitHub | [hitgalani](https://github.com/hitgalani) |
+| LinkedIn | [ADD LINKEDIN PROFILE URL] |
+| Email | [ADD CONTACT EMAIL] |
 
 ## Acknowledgements
 
