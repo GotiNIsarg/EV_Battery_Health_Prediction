@@ -11,7 +11,7 @@
   <a href="https://github.com/hitgalani/EV_Battery_Health_Prediction/commits/main"><img src="https://img.shields.io/github/last-commit/hitgalani/EV_Battery_Health_Prediction?label=last%20commit" alt="Last commit"></a>
 </p>
 
-<p align="center">A beginner-friendly machine-learning project that predicts battery State of Health (SoH, %) and classifies the dataset's battery status from five battery measurements.</p>
+<p align="center">A friendly machine-learning project that predicts battery State of Health (SoH, %) and classifies the dataset's battery status from five battery measurements.</p>
 
 ---
 
