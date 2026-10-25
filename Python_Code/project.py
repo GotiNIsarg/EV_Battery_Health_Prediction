@@ -1,10 +1,10 @@
 # EV Battery Health Prediction
 # Run from the main project folder with: python Python_Code/project.py
 
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
+import numpy as np
 import seaborn as sns
+import matplotlib.pyplot as plt
 import sweetviz as sv
 
 from sklearn.linear_model import LinearRegression, LogisticRegression
