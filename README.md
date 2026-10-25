@@ -348,10 +348,10 @@ The project is intended to use the **MIT License**, but a `LICENSE` file is not 
 
 | Contact | Details |
 |---|---|
-| Name | [ADD AUTHOR NAME] |
-| GitHub | [ADD GITHUB PROFILE URL] |
-| LinkedIn | [ADD LINKEDIN PROFILE URL] |
-| Email | [ADD CONTACT EMAIL] |
+| Name | [Hit Galani] |
+| GitHub | [github.com/hitgalani] |
+| LinkedIn | [...] |
+| Email | [...] |
 
 ## Acknowledgements
 
