@@ -1,9 +1,38 @@
+# Python virtual environments
 venv/
 .venv/
 .venv-*/
 env/
 ENV/
+
+# Environment variable / secret files
+.env
+
+# Python cache
 __pycache__/
 *.py[cod]
+
+# VS Code settings
 .vscode/
-Fundamentals of Machine Learning/*
+
+# Course learning material (not part of the project)
+Fundamentals of Machine Learning/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Optional: skip large auto-generated Sweetviz reports
+# Reports/Sweetviz_EDA_Report.html
+# Main/Main-2-Reports/Sweetviz_EDA_Report.html
+
+# Optional: skip the dataset (download it from Kaggle instead)
+# Dataset/EV_Battery_Dataset.csv
